@@ -932,3 +932,13 @@ failure = true
 rands = [
   { sides = 100, value = 24 },
 ]
+
+##### 特殊なケース #####
+[[ test ]]
+game_system = "Aionia"
+input = "DMG>10 比較演算子の不正"
+output = ""
+success = true
+rands = [
+  { sides = 100, value = 10 },
+]

@@ -135,7 +135,7 @@ module BCDice
       end
 
       def roll_damage_check(command)
-        parser = Command::Parser.new("DMG", round_type: BCDice::RoundType::FLOOR)
+        parser = Command::Parser.new("DMG", round_type: BCDice::RoundType::FLOOR).restrict_cmp_op_to(:>=)
         parsed = parser.parse(command)
         return nil unless parsed
 
