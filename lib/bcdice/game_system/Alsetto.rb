@@ -45,30 +45,52 @@ module BCDice
       end
 
       def eval_game_system_specific_command(command)
-        # ALCコマンド：命中判定
-        # ALCコマンド：成功判定
-        if command =~ /(\d+)AL(C|G)?(\d+)?((x|\*)(\d+))?$/i
-          rapid = Regexp.last_match(1).to_i
-          is_critical = Regexp.last_match(2).nil?
-          if is_critical
-            critical_number = 1
-          else
-            if Regexp.last_match(2) == "G"
-              is_critical = true
-              critical_number = 2
-            else
-              critical_number = 0
-            end
-          end
-          target = (Regexp.last_match(3) || 3).to_i
-          damage = (Regexp.last_match(6) || 0).to_i
-          return check_roll(rapid, target, damage, is_critical, critical_number)
-        end
-
-        return nil
+        check_roll(command)
       end
 
-      def check_roll(rapid, target, damage, is_critical, critical_number)
+      private
+
+      def parce_check_roll(command)
+        m = /(\d+)AL(C|G)?(\d+)?((x|\*)(\d+))?$/i.match(command)
+        unless m
+          return nil
+        end
+
+        rapid = m[1].to_i
+        enable_critical = m[2].nil? || m[2] == "G"
+        critical_number =
+          case m[2]
+          when "G"
+            2
+          when "C"
+            0
+          else
+            1
+          end
+        target = m[3]&.to_i || 3
+        damage = m[6].to_i
+
+        return {
+          rapid: rapid,
+          enable_critical: enable_critical,
+          critical_number: critical_number,
+          target: target,
+          damage: damage,
+        }
+      end
+
+      def check_roll(command)
+        parsed = parce_check_roll(command)
+        unless parsed
+          return nil
+        end
+
+        rapid = parsed[:rapid]
+        enable_critical = parsed[:enable_critical]
+        critical_number = parsed[:critical_number]
+        target = parsed[:target]
+        damage = parsed[:damage]
+
         total_success_count = 0
         total_critical_count = 0
         text = ""
@@ -98,7 +120,7 @@ module BCDice
           text += "+" unless text.empty?
           text += "#{success_count}[#{dice_text}]"
 
-          break unless is_critical
+          break unless enable_critical
 
           roll_count = critical_count
         end
@@ -113,7 +135,7 @@ module BCDice
           result = "(#{rapid}D6\<\=#{target}) ＞ #{text} ＞ 成功数：#{total_success_count}"
         end
 
-        if is_critical
+        if enable_critical
           result += " / #{total_critical_count}トライアンフ"
         end
 
