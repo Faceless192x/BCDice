@@ -49,72 +49,72 @@ module BCDice
         # ALCコマンド：成功判定
         if command =~ /(\d+)AL(C|G)?(\d+)?((x|\*)(\d+))?$/i
           rapid = Regexp.last_match(1).to_i
-          isCritical = Regexp.last_match(2).nil?
-          if isCritical
-            criticalNumber = 1
+          is_critical = Regexp.last_match(2).nil?
+          if is_critical
+            critical_number = 1
           else
             if Regexp.last_match(2) == "G"
-              isCritical = true
-              criticalNumber = 2
+              is_critical = true
+              critical_number = 2
             else
-              criticalNumber = 0
+              critical_number = 0
             end
           end
           target = (Regexp.last_match(3) || 3).to_i
           damage = (Regexp.last_match(6) || 0).to_i
-          return checkRoll(rapid, target, damage, isCritical, criticalNumber)
+          return check_roll(rapid, target, damage, is_critical, critical_number)
         end
 
         return nil
       end
 
-      def checkRoll(rapid, target, damage, isCritical, criticalNumber)
-        totalSuccessCount = 0
-        totalCriticalCount = 0
+      def check_roll(rapid, target, damage, is_critical, critical_number)
+        total_success_count = 0
+        total_critical_count = 0
         text = ""
 
-        rollCount = rapid
+        roll_count = rapid
 
-        while rollCount > 0
-          diceArray = @randomizer.roll_barabara(rollCount, 6).sort
-          diceText = diceArray.join(",")
+        while roll_count > 0
+          dice_array = @randomizer.roll_barabara(roll_count, 6).sort
+          dice_text = dice_array.join(",")
 
-          successCount = 0
-          criticalCount = 0
+          success_count = 0
+          critical_count = 0
 
-          diceArray.each do |i|
+          dice_array.each do |i|
             if i <= target
-              successCount += 1
+              success_count += 1
             end
 
-            if i <= criticalNumber
-              criticalCount += 1
+            if i <= critical_number
+              critical_count += 1
             end
           end
 
-          totalSuccessCount += successCount
-          totalCriticalCount += 1 unless criticalCount == 0
+          total_success_count += success_count
+          total_critical_count += 1 unless critical_count == 0
 
           text += "+" unless text.empty?
-          text += "#{successCount}[#{diceText}]"
+          text += "#{success_count}[#{dice_text}]"
 
-          break unless isCritical
+          break unless is_critical
 
-          rollCount = criticalCount
+          roll_count = critical_count
         end
 
-        isDamage = (damage != 0)
+        is_damage = (damage != 0)
 
-        if isDamage
-          totalDamage = totalSuccessCount * damage
+        if is_damage
+          total_damage = total_success_count * damage
 
-          result = "(#{rapid}D6\<\=#{target}) ＞ #{text} ＞ Hits：#{totalSuccessCount}*#{damage} ＞ #{totalDamage}ダメージ"
+          result = "(#{rapid}D6\<\=#{target}) ＞ #{text} ＞ Hits：#{total_success_count}*#{damage} ＞ #{total_damage}ダメージ"
         else
-          result = "(#{rapid}D6\<\=#{target}) ＞ #{text} ＞ 成功数：#{totalSuccessCount}"
+          result = "(#{rapid}D6\<\=#{target}) ＞ #{text} ＞ 成功数：#{total_success_count}"
         end
 
-        if isCritical
-          result += " / #{totalCriticalCount}トライアンフ"
+        if is_critical
+          result += " / #{total_critical_count}トライアンフ"
         end
 
         return result
