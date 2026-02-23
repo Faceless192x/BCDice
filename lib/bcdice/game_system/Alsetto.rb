@@ -101,21 +101,10 @@ module BCDice
           dice_array = @randomizer.roll_barabara(roll_count, 6).sort
           dice_text = dice_array.join(",")
 
-          success_count = 0
-          critical_count = 0
-
-          dice_array.each do |i|
-            if i <= target
-              success_count += 1
-            end
-
-            if i <= critical_number
-              critical_count += 1
-            end
-          end
-
+          success_count = dice_array.count { |v| v <= target }
+          critical_count = dice_array.count { |v| v <= critical_number }
           total_success_count += success_count
-          total_critical_count += 1 unless critical_count == 0
+          total_critical_count += 1 if critical_count > 0
 
           text += "+" unless text.empty?
           text += "#{success_count}[#{dice_text}]"
